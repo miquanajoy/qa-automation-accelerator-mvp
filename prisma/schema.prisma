@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  pages       Page[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  username     String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sessions     AuthSession[]
+
+  @@index([createdAt])
+}
+
+model AuthSession {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Page {
+  id             String          @id @default(cuid())
+  projectId      String
+  url            String
+  title          String?
+  html           String
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  elements       Element[]
+  snapshots      Snapshot[]
+  generatedFiles GeneratedFile[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([projectId])
+  @@index([url])
+}
+
+model Element {
+  id          String          @id @default(cuid())
+  pageId      String
+  tagName     String
+  elementId   String?
+  className   String?
+  text        String?
+  role        String?
+  ariaLabel   String?
+  name        String?
+  placeholder String?
+  type        String?
+  href        String?
+  testId      String?
+  test        String?
+  xpath       String?
+  cssSelector String?
+  page        Page            @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  locators    LocatorReport[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([pageId])
+  @@index([tagName])
+}
+
+model LocatorReport {
+  id             String   @id @default(cuid())
+  elementId      String
+  locatorType    String
+  locatorValue   String
+  score          Int
+  recommendation String?
+  reason         String?
+  element        Element  @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([elementId])
+  @@index([score])
+}
+
+model Snapshot {
+  id           String   @id @default(cuid())
+  pageId       String
+  snapshotData Json
+  page         Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([pageId])
+}
+
+model GeneratedFile {
+  id        String   @id @default(cuid())
+  pageId    String
+  type      String
+  content   String
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageId])
+  @@index([type])
+}
