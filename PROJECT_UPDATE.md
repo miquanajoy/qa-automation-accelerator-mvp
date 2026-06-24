@@ -366,6 +366,41 @@ Verification:
 - `npm run lint` passes.
 - `npm run build` passes.
 
+## Phase 8 - Playwright Page Object Generator v1
+
+Status: Complete for MVP.
+
+What has been done:
+
+- Added generator module types, repository, service, and use cases.
+- Added Page Object APIs:
+  - `GET /api/pages/:id/page-object`
+  - `POST /api/pages/:id/page-object`
+- Added `/generator` workspace.
+- User can select a project and crawled page.
+- User can select which elements are included in generated code.
+- Generator chooses the highest-scored Playwright locator per selected element.
+- Generates:
+  - TypeScript class name from page title or URL.
+  - readonly `Locator` properties.
+  - constructor locator assignments.
+  - input and textarea fill actions.
+  - button and link click actions.
+- Saves generated code in the `GeneratedFile` table.
+- Added TypeScript code preview.
+- Added copy and `.ts` download actions.
+- Added saved version history.
+- Limited large element lists to 60 rendered rows with search and show-more.
+
+Verification:
+
+- Demo page generated and saved `ExampleDomainPage.ts`.
+- Generated source passes TypeScript syntax validation.
+- `npm run test:generator` passes with 4 tests.
+- `npm run test:locator-scoring` passes with 5 tests.
+- `npm run lint` passes.
+- `npm run build` passes.
+
 ## Project Status Now
 
 The app can currently do these things:
@@ -396,6 +431,9 @@ The app can currently do these things:
 - See locator stability score, reason, and recommendation badge.
 - Export filtered locators to CSV or JSON.
 - Copy recommended locator lines for quick use in tests.
+- Generate Playwright TypeScript Page Object classes.
+- Select which elements are included in a Page Object.
+- Preview, copy, download, and save generated Page Object code.
 - Register a user when PostgreSQL is running and migrated.
 - Login with email or username.
 - Validate password rules during registration.
@@ -414,16 +452,15 @@ The app can currently do these things:
 
 The app cannot do these things yet:
 
-- Generate Page Object files from selected locators.
-- Download or copy generated files from the UI.
 - Mark one preferred locator as selected.
+- Generate Selenium Page Objects.
 
 ## Next Recommended Phase
 
-Phase 8 should focus on Page Object generation:
+Phase 9 should focus on MVP hardening:
 
-- Let users choose preferred locators.
-- Generate TypeScript Page Object files.
-- Store generated files in `GeneratedFile`.
-- Add generated code preview UI.
-- Add copy/download actions for generated files.
+- Add broader service and API tests.
+- Improve request validation and error details.
+- Add structured logging.
+- Review generated property naming on large real-world pages.
+- Add preferred locator selection before Selenium generation.

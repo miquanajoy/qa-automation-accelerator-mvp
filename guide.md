@@ -268,6 +268,34 @@ Locator screens support lightweight export actions:
 
 Exports respect the current search and locator type filters.
 
+## Playwright Page Object Generator
+
+Open:
+
+```text
+http://localhost:3000/generator
+```
+
+Flow:
+
+1. Select a project.
+2. Select a crawled page.
+3. Review the highest-scored Playwright locator for each element.
+4. Select the elements to include.
+5. Click `Generate & Save`.
+6. Review the TypeScript code preview.
+7. Use `Copy` or `Download`.
+
+The generated class name is based on the page title or URL. The generator adds:
+
+- readonly Playwright `Locator` properties
+- constructor locator assignments
+- input and textarea `fill` methods
+- button and link `click` methods
+
+Generated source code is stored in the `GeneratedFile` table with type
+`playwright_page_object`.
+
 ## Check Database Connection
 
 After the app and PostgreSQL are running, open:
@@ -297,6 +325,12 @@ Run locator stability scoring tests:
 
 ```bash
 npm run test:locator-scoring
+```
+
+Run Page Object generator tests:
+
+```bash
+npm run test:generator
 ```
 
 Run production build:
@@ -365,7 +399,7 @@ http://localhost:3001/dashboard
 
 ## Current Phase
 
-The project has completed the MVP flow through Phase 7:
+The project has completed the MVP flow through Phase 8:
 
 - Phase 1: project bootstrap.
 - Phase 2: database schema foundation and auth tables.
@@ -374,3 +408,4 @@ The project has completed the MVP flow through Phase 7:
 - Phase 5: DOM parser for automation-relevant elements.
 - Phase 6: deterministic locator generation.
 - Phase 7: locator stability scoring.
+- Phase 8: Playwright Page Object generation.
