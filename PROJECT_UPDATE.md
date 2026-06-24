@@ -361,6 +361,8 @@ What has been done:
 Verification:
 
 - Regenerated locators include score, reason, and recommendation.
+- Locator scoring rules have focused automated tests.
+- `npm run test:locator-scoring` passes with 5 tests.
 - `npm run lint` passes.
 - `npm run build` passes.
 

@@ -4,8 +4,20 @@ import type {
   LocatorRecommendation
 } from "../types/locator.type";
 
-type ScoringRuleConfig = {
-  baseScores: Record<string, number>;
+type LocatorBaseScoreType =
+  | "data-testid"
+  | "data-test"
+  | "aria-label"
+  | "role"
+  | "id"
+  | "name"
+  | "placeholder"
+  | "text"
+  | "css"
+  | "xpath";
+
+export type LocatorScoringConfig = {
+  baseScores: Record<LocatorBaseScoreType, number>;
   deductions: {
     dynamicClass: number;
     generatedId: number;
@@ -22,7 +34,13 @@ type ScoringRuleConfig = {
   };
 };
 
-const scoringConfig: ScoringRuleConfig = {
+export type LocatorScoringConfigOverride = {
+  baseScores?: Partial<LocatorScoringConfig["baseScores"]>;
+  deductions?: Partial<LocatorScoringConfig["deductions"]>;
+  thresholds?: Partial<LocatorScoringConfig["thresholds"]>;
+};
+
+export const defaultLocatorScoringConfig: LocatorScoringConfig = {
   baseScores: {
     "data-testid": 95,
     "data-test": 90,
@@ -63,60 +81,66 @@ function clampScore(score: number): number {
   return Math.max(0, Math.min(100, score));
 }
 
-function baseScoreFor(locatorType: string): number {
+function baseScoreFor(
+  locatorType: string,
+  config: LocatorScoringConfig
+): number {
   if (locatorType.includes("data-testid")) {
-    return scoringConfig.baseScores["data-testid"];
+    return config.baseScores["data-testid"];
   }
 
   if (locatorType.includes("data-test")) {
-    return scoringConfig.baseScores["data-test"];
+    return config.baseScores["data-test"];
   }
 
   if (locatorType.includes("aria-label")) {
-    return scoringConfig.baseScores["aria-label"];
+    return config.baseScores["aria-label"];
   }
 
   if (locatorType.includes("role")) {
-    return scoringConfig.baseScores.role;
+    return config.baseScores.role;
   }
 
   if (locatorType.endsWith(":id") || locatorType === "id") {
-    return scoringConfig.baseScores.id;
+    return config.baseScores.id;
   }
 
   if (locatorType.includes("name")) {
-    return scoringConfig.baseScores.name;
+    return config.baseScores.name;
   }
 
   if (locatorType.includes("placeholder")) {
-    return scoringConfig.baseScores.placeholder;
+    return config.baseScores.placeholder;
   }
 
   if (locatorType.includes("text")) {
-    return scoringConfig.baseScores.text;
+    return config.baseScores.text;
   }
 
   if (locatorType.includes("css")) {
-    return scoringConfig.baseScores.css;
+    return config.baseScores.css;
   }
 
   if (locatorType.includes("xpath")) {
-    return scoringConfig.baseScores.xpath;
+    return config.baseScores.xpath;
   }
 
-  return scoringConfig.baseScores.css;
+  return config.baseScores.css;
 }
 
-function recommendationFor(score: number): LocatorRecommendation {
-  if (score >= scoringConfig.thresholds.recommended) {
+function recommendationFor(
+  score: number,
+  config: LocatorScoringConfig
+): LocatorRecommendation {
+  if (score >= config.thresholds.recommended) {
     return "Recommended";
   }
 
-  if (score >= scoringConfig.thresholds.acceptable) {
+  if (score >= config.thresholds.acceptable) {
     return "Acceptable";
   }
 
-  if (score >= scoringConfig.thresholds.weak) {
+  if (score >= config.thresholds.weak) {
     return "Weak";
   }
 
@@ -181,10 +205,29 @@ function isLongTextLocator(locator: GeneratedLocator, element: LocatorElement): 
 }
 
 export class LocatorStabilityScoringService {
+  private readonly config: LocatorScoringConfig;
+
+  constructor(config: LocatorScoringConfigOverride = {}) {
+    this.config = {
+      baseScores: {
+        ...defaultLocatorScoringConfig.baseScores,
+        ...config.baseScores
+      },
+      deductions: {
+        ...defaultLocatorScoringConfig.deductions,
+        ...config.deductions
+      },
+      thresholds: {
+        ...defaultLocatorScoringConfig.thresholds,
+        ...config.thresholds
+      }
+    };
+  }
+
   score(locator: GeneratedLocator, element: LocatorElement): GeneratedLocator {
     const scoreReasons: string[] = [];
     const deductions: string[] = [];
-    let score = baseScoreFor(locator.locatorType);
+    let score = baseScoreFor(locator.locatorType, this.config);
 
     scoreReasons.push(`Base ${score} for ${locator.locatorType}`);
 
@@ -192,7 +235,7 @@ export class LocatorStabilityScoringService {
       locator.locatorType.includes("css") &&
       hasDynamicClass(element.className)
     ) {
-      score -= scoringConfig.deductions.dynamicClass;
+      score -= this.config.deductions.dynamicClass;
       deductions.push("dynamic class detected");
     }
 
@@ -200,22 +243,22 @@ export class LocatorStabilityScoringService {
       locator.locatorType.includes("css") &&
       hasGeneratedClass(`${element.className ?? ""} ${locator.locatorValue}`)
     ) {
-      score -= scoringConfig.deductions.generatedClass;
+      score -= this.config.deductions.generatedClass;
       deductions.push("generated class pattern detected");
     }
 
     if (locator.locatorType.includes("id") && hasGeneratedId(element.elementId)) {
-      score -= scoringConfig.deductions.generatedId;
+      score -= this.config.deductions.generatedId;
       deductions.push("id looks generated or random");
     }
 
     if (isLongTextLocator(locator, element)) {
-      score -= scoringConfig.deductions.longText;
+      score -= this.config.deductions.longText;
       deductions.push("text locator is too long");
     }
 
     if (locator.locatorType.includes("xpath") && isLongXPath(element.xpath)) {
-      score -= scoringConfig.deductions.longXPath;
+      score -= this.config.deductions.longXPath;
       deductions.push("XPath is long");
     }
 
@@ -223,17 +266,17 @@ export class LocatorStabilityScoringService {
       locator.locatorType.includes("css") &&
       isDeepCssSelector(element.cssSelector)
     ) {
-      score -= scoringConfig.deductions.deepCssSelector;
+      score -= this.config.deductions.deepCssSelector;
       deductions.push("CSS selector is deep");
     }
 
     if (hasNthChild(locator.locatorValue)) {
-      score -= scoringConfig.deductions.nthChild;
+      score -= this.config.deductions.nthChild;
       deductions.push("locator uses nth-child or nth-of-type");
     }
 
     const finalScore = clampScore(score);
-    const recommendation = recommendationFor(finalScore);
+    const recommendation = recommendationFor(finalScore, this.config);
     const deductionText =
       deductions.length > 0
         ? `Deductions: ${deductions.join(", ")}.`
