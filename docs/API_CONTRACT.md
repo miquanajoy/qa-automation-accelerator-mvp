@@ -346,6 +346,62 @@ deterministic locator candidates in `LocatorReport`. Locator priority is:
 placeholder, text, CSS selector, then XPath. Output includes Playwright,
 Selenium By, CSS selector, and XPath formats when enough element data exists.
 
+## Page Object APIs
+
+### List Generated Page Objects
+
+`GET /api/pages/:id/page-object`
+
+Response:
+
+```json
+{
+  "generatedFiles": [
+    {
+      "id": "generated_file_id",
+      "pageId": "page_id",
+      "type": "playwright_page_object",
+      "className": "LoginPage",
+      "filename": "LoginPage.ts",
+      "content": "import { type Locator, type Page } from \"@playwright/test\";...",
+      "createdAt": "2026-06-24T00:00:00.000Z",
+      "updatedAt": "2026-06-24T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Generate And Save Playwright Page Object
+
+`POST /api/pages/:id/page-object`
+
+Request:
+
+```json
+{
+  "selectedElementIds": ["element_id_1", "element_id_2"]
+}
+```
+
+Response:
+
+```json
+{
+  "generatedFile": {
+    "id": "generated_file_id",
+    "pageId": "page_id",
+    "type": "playwright_page_object",
+    "className": "LoginPage",
+    "filename": "LoginPage.ts",
+    "content": "..."
+  }
+}
+```
+
+The generator uses only Playwright locators. For every selected element it picks
+the highest-scored `playwright:*` locator, generates a TypeScript class, and
+saves the code in `GeneratedFile`.
+
 ## Snapshot APIs
 
 ### Get Snapshot

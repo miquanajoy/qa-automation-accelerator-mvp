@@ -87,11 +87,15 @@
 
 ## Phase 8: Generator Module
 
-- [ ] Define generator types.
-- [ ] Implement Page Object generator service.
-- [ ] Store generated artifact.
-- [ ] Add Page Object generation API route.
-- [ ] Add generated code preview UI.
+- [x] Define generator types.
+- [x] Implement Playwright Page Object generator service.
+- [x] Select the highest-scored Playwright locator per element.
+- [x] Generate Locator properties, constructor, fill actions, and click actions.
+- [x] Store generated artifact in `GeneratedFile`.
+- [x] Add Page Object generation API route.
+- [x] Add generated code preview UI.
+- [x] Add copy and TypeScript download actions.
+- [x] Add focused generator tests.
 
 ## Phase 9: MVP Hardening
 
