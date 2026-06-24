@@ -293,6 +293,12 @@ Run lint:
 npm run lint
 ```
 
+Run locator stability scoring tests:
+
+```bash
+npm run test:locator-scoring
+```
+
 Run production build:
 
 ```bash
